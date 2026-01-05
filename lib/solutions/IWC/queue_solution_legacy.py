@@ -166,20 +166,6 @@ class Queue:
                 metadata["group_earliest_timestamp"] = current_earliest
                 metadata["user_priority"] = user_priority_level
 
-            # raw_task_priority = metadata.get("task_priority")
-            # try:
-            #     task_priority_level = TaskPriority(raw_task_priority)
-            # except (TypeError, ValueError):
-            #     task_priority_level = None
-
-            # if task_priority_level is None or task_priority_level == TaskPriority.NORMAL:
-            # if task.provider == "bank_statements":
-            #     metadata["task_priority"] = TaskPriority.LOW
-            # else:
-            #     metadata["task_priority"] = TaskPriority.NORMAL
-            # else:
-            #     metadata["task_priority"] = task_priority_level
-
         self._queue.sort(
             key=lambda i: (
                 self._priority_for_user(i),
@@ -290,4 +276,5 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
