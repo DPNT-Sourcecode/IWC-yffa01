@@ -4,7 +4,7 @@ from enum import IntEnum
 
 # LEGACY CODE ASSET
 # RESOLVED on deploy
-from lib.solutions.IWC.task_types import TaskSubmission, TaskDispatch
+from solutions.IWC.task_types import TaskSubmission, TaskDispatch
 
 class Priority(IntEnum):
     """Represents the queue ordering tiers observed in the legacy system."""
@@ -101,7 +101,7 @@ class Queue:
                 if self._timestamp_for_task(task) < self._timestamp_for_task(existing_task):
                     self._queue[i] = task
                 return
-        self.queue.append(task)
+        self._queue.append(task)
 
     def _upsert_task(self, task):
         self._hydrate_metadata(task)
@@ -256,6 +256,7 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
 
