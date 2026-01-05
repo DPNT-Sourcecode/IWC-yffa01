@@ -166,6 +166,9 @@ class Queue:
                 metadata["group_earliest_timestamp"] = current_earliest
                 metadata["user_priority"] = user_priority_level
 
+            if self.age >= 300 and task.provider == "bank_statements":
+                metadata["task_priority"] = TaskPriority.NORMAL
+
         self._queue.sort(
             key=lambda i: (
                 self._priority_for_user(i),
@@ -283,3 +286,4 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
