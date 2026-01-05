@@ -96,11 +96,12 @@ class Queue:
         metadata.setdefault("group_earliest_timestamp", MAX_TIMESTAMP)
 
     def _dedup_and_append(self, task):
-        deduplicated_tasks = []
-        for task in tasks:
-            if task not in deduplicated_tasks:
-                deduplicated_tasks.append(task)
-        return deduplicated_tasks
+        for i, existing_task in enumerate(self._queue):
+            if existing_task.user_id == task.user_id and existing_task.provider == task.provider:
+                if self._timestamp_for_task(existing_task) < self._timestamp_for_task(task):
+                    self._queue[i] = task
+                return
+        self.queue.append(task)
 
     def enqueue(self, item: TaskSubmission) -> int:
         tasks = [*self._collect_dependencies(item), item]
@@ -252,5 +253,6 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
