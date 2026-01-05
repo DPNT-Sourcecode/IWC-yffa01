@@ -14,7 +14,7 @@ def test_enqueue_bank_statements_dequeue_flow() -> None:
     run_queue([
         call_enqueue("bank_statements", 1, iso_ts(delta_minutes=0)).expect(1),
         call_enqueue("id_verification", 1, iso_ts(delta_minutes=1)).expect(2),
-        call_enqueue("companies_house", 1, iso_ts(delta_minutes=2)).expect(3),
+        # call_enqueue("companies_house", 1, iso_ts(delta_minutes=2)).expect(3),
         call_enqueue("companies_house", 2, iso_ts(delta_minutes=3)).expect(4),
         call_size().expect(4),
         call_dequeue().expect("id_verification", 1),

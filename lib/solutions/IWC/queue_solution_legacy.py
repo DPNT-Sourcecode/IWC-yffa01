@@ -4,7 +4,7 @@ from enum import IntEnum
 
 # LEGACY CODE ASSET
 # RESOLVED on deploy
-from solutions.IWC.task_types import TaskSubmission, TaskDispatch
+from lib.solutions.IWC.task_types import TaskSubmission, TaskDispatch
 
 class UserPriority(IntEnum):
     """Represents the user ordering tiers observed in the legacy system."""
@@ -147,24 +147,24 @@ class Queue:
 
         for task in self._queue:
             metadata = task.metadata
-#             current_earliest = metadata.get("group_earliest_timestamp", MAX_TIMESTAMP)
-#             raw_user_priority = metadata.get("user_priority")
-#             try:
-#                 user_priority_level = UserPriority(raw_user_priority)
-#             except (TypeError, ValueError):
-#                 user_priority_level = None
+            current_earliest = metadata.get("group_earliest_timestamp", MAX_TIMESTAMP)
+            raw_user_priority = metadata.get("user_priority")
+            try:
+                user_priority_level = UserPriority(raw_user_priority)
+            except (TypeError, ValueError):
+                user_priority_level = None
 
-            # if user_priority_level is None or user_priority_level == UserPriority.NORMAL:
-            #     metadata["group_earliest_timestamp"] = MAX_TIMESTAMP
-            if task_count[task.user_id] >= 3:
-                metadata["group_earliest_timestamp"] = priority_timestamps[task.user_id]
-                metadata["user_priority"] = UserPriority.HIGH
-            else:
+            if user_priority_level is None or user_priority_level == UserPriority.NORMAL:
                 metadata["group_earliest_timestamp"] = MAX_TIMESTAMP
-                metadata["user_priority"] = UserPriority.NORMAL
-            # else:
-            #     metadata["group_earliest_timestamp"] = current_earliest
-            #     metadata["user_priority"] = user_priority_level
+                if task_count[task.user_id] >= 3:
+                    metadata["group_earliest_timestamp"] = priority_timestamps[task.user_id]
+                    metadata["user_priority"] = UserPriority.HIGH
+                else:
+                    metadata["group_earliest_timestamp"] = MAX_TIMESTAMP
+                    metadata["user_priority"] = UserPriority.NORMAL
+            else:
+                metadata["group_earliest_timestamp"] = current_earliest
+                metadata["user_priority"] = user_priority_level
 
             # raw_task_priority = metadata.get("task_priority")
             # try:
@@ -290,3 +290,4 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
