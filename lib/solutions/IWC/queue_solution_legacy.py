@@ -4,7 +4,7 @@ from enum import IntEnum
 
 # LEGACY CODE ASSET
 # RESOLVED on deploy
-from lib.solutions.IWC.task_types import TaskSubmission, TaskDispatch
+from solutions.IWC.task_types import TaskSubmission, TaskDispatch
 
 class UserPriority(IntEnum):
     """Represents the user ordering tiers observed in the legacy system."""
