@@ -132,10 +132,10 @@ class Queue:
             self._upsert_task(task)
         return self.size
 
-    # def _get_age_for_task(self, given_task):
-    #     timestamp = self._timestamp_for_task(given_task)
-    #     oldest = min([self._timestamp_for_task(task) for task in self._queue])
-    #     return (int)((oldest - timestamp).total_seconds())
+    def _get_age_for_task(self, given_task):
+        timestamp = self._timestamp_for_task(given_task)
+        oldest = max([self._timestamp_for_task(task) for task in self._queue])
+        return (int)((oldest - timestamp).total_seconds())
 
     def dequeue(self):
         if self.size == 0:
@@ -294,3 +294,4 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
