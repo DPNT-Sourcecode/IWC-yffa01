@@ -98,17 +98,21 @@ class Queue:
     def _dedup_and_append(self, task):
         for i, existing_task in enumerate(self._queue):
             if existing_task.user_id == task.user_id and existing_task.provider == task.provider:
-                if self._timestamp_for_task(existing_task) < self._timestamp_for_task(task):
+                if self._timestamp_for_task(task) < self._timestamp_for_task(existing_task):
                     self._queue[i] = task
                 return
         self.queue.append(task)
+
+
+    def _upsert_task(self, task):
+        self._hydrate_metadata(task)
+        self._dedup_and_append(task)
 
     def enqueue(self, item: TaskSubmission) -> int:
         tasks = [*self._collect_dependencies(item), item]
 
         for task in tasks:
-            self._hydrate_metadata(task)
-            self._queue.append(task)
+            self._upsert_task(task)
         return self.size
 
     def dequeue(self):
@@ -253,6 +257,7 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
 
