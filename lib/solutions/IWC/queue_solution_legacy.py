@@ -6,10 +6,15 @@ from enum import IntEnum
 # RESOLVED on deploy
 from solutions.IWC.task_types import TaskSubmission, TaskDispatch
 
-class Priority(IntEnum):
-    """Represents the queue ordering tiers observed in the legacy system."""
+class UserPriority(IntEnum):
+    """Represents the user ordering tiers observed in the legacy system."""
     HIGH = 1
     NORMAL = 2
+
+class TaskPriority(IntEnum):
+    """Represents the task priority tiers observed in the legacy system."""
+    NORMAL = 1
+    LOW = 2
 
 @dataclass
 class Provider:
@@ -68,13 +73,22 @@ class Queue:
         return tasks
 
     @staticmethod
+    def _priority_for_user(task):
+        metadata = task.metadata
+        raw_priority = metadata.get("user_priority", UserPriority.NORMAL)
+        try:
+            return UserPriority(raw_priority)
+        except (TypeError, ValueError):
+            return UserPriority.NORMAL
+
+    @staticmethod
     def _priority_for_task(task):
         metadata = task.metadata
-        raw_priority = metadata.get("priority", Priority.NORMAL)
+        raw_priority = metadata.get("task_priority", UserPriority.NORMAL)
         try:
-            return Priority(raw_priority)
+            return TaskPriority(raw_priority)
         except (TypeError, ValueError):
-            return Priority.NORMAL
+            return TaskPriority.NORMAL
 
     @staticmethod
     def _earliest_group_timestamp_for_task(task):
@@ -92,10 +106,14 @@ class Queue:
 
     def _hydrate_metadata(self, task):
         metadata = task.metadata
-        metadata.setdefault("priority", Priority.NORMAL)
+        metadata.setdefault("user_priority", UserPriority.NORMAL)
+        if task.provider == "bank_statements":
+            metadata.setdefault("task_priority", TaskPriority.LOW)
+        else:
+            metadata.setdefault("task_priority", TaskPriority.NORMAL)
         metadata.setdefault("group_earliest_timestamp", MAX_TIMESTAMP)
 
-    def _dedup_and_append(self, task):
+    def _deduplicate_and_append(self, task):
         for i, existing_task in enumerate(self._queue):
             if existing_task.user_id == task.user_id and existing_task.provider == task.provider:
                 if self._timestamp_for_task(task) < self._timestamp_for_task(existing_task):
@@ -105,7 +123,7 @@ class Queue:
 
     def _upsert_task(self, task):
         self._hydrate_metadata(task)
-        self._dedup_and_append(task)
+        self._deduplicate_and_append(task)
 
     def enqueue(self, item: TaskSubmission) -> int:
         tasks = [*self._collect_dependencies(item), item]
@@ -123,34 +141,50 @@ class Queue:
         priority_timestamps = {}
         for user_id in user_ids:
             user_tasks = [t for t in self._queue if t.user_id == user_id]
-            earliest_timestamp = sorted(user_tasks, key=lambda t: t.timestamp)[0].timestamp
+            earliest_timestamp = min(t.timestamp for t in user_tasks)
             priority_timestamps[user_id] = earliest_timestamp
             task_count[user_id] = len(user_tasks)
 
         for task in self._queue:
             metadata = task.metadata
-            current_earliest = metadata.get("group_earliest_timestamp", MAX_TIMESTAMP)
-            raw_priority = metadata.get("priority")
-            try:
-                priority_level = Priority(raw_priority)
-            except (TypeError, ValueError):
-                priority_level = None
+#             current_earliest = metadata.get("group_earliest_timestamp", MAX_TIMESTAMP)
+#             raw_user_priority = metadata.get("user_priority")
+#             try:
+#                 user_priority_level = UserPriority(raw_user_priority)
+#             except (TypeError, ValueError):
+#                 user_priority_level = None
 
-            if priority_level is None or priority_level == Priority.NORMAL:
-                metadata["group_earliest_timestamp"] = MAX_TIMESTAMP
-                if task_count[task.user_id] >= 3:
-                    metadata["group_earliest_timestamp"] = priority_timestamps[task.user_id]
-                    metadata["priority"] = Priority.HIGH
-                else:
-                    metadata["priority"] = Priority.NORMAL
+            # if user_priority_level is None or user_priority_level == UserPriority.NORMAL:
+            #     metadata["group_earliest_timestamp"] = MAX_TIMESTAMP
+            if task_count[task.user_id] >= 3:
+                metadata["group_earliest_timestamp"] = priority_timestamps[task.user_id]
+                metadata["user_priority"] = UserPriority.HIGH
             else:
-                metadata["group_earliest_timestamp"] = current_earliest
-                metadata["priority"] = priority_level
+                metadata["group_earliest_timestamp"] = MAX_TIMESTAMP
+                metadata["user_priority"] = UserPriority.NORMAL
+            # else:
+            #     metadata["group_earliest_timestamp"] = current_earliest
+            #     metadata["user_priority"] = user_priority_level
+
+            # raw_task_priority = metadata.get("task_priority")
+            # try:
+            #     task_priority_level = TaskPriority(raw_task_priority)
+            # except (TypeError, ValueError):
+            #     task_priority_level = None
+
+            # if task_priority_level is None or task_priority_level == TaskPriority.NORMAL:
+            # if task.provider == "bank_statements":
+            #     metadata["task_priority"] = TaskPriority.LOW
+            # else:
+            #     metadata["task_priority"] = TaskPriority.NORMAL
+            # else:
+            #     metadata["task_priority"] = task_priority_level
 
         self._queue.sort(
             key=lambda i: (
-                self._priority_for_task(i),
+                self._priority_for_user(i),
                 self._earliest_group_timestamp_for_task(i),
+                self._priority_for_task(i),
                 self._timestamp_for_task(i),
             )
         )
