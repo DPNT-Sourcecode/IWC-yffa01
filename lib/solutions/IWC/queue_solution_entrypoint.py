@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from solutions.IWC.queue_solution_legacy import Queue
-from solutions.IWC.task_types import TaskDispatch, TaskSubmission
+from lib.solutions.IWC.queue_solution_legacy import Queue
+from lib.solutions.IWC.task_types import TaskDispatch, TaskSubmission
 
 class QueueSolutionEntrypoint:
 
