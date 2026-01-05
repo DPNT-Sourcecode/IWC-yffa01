@@ -90,8 +90,12 @@ class Queue:
             return datetime.fromisoformat(timestamp).replace(tzinfo=None)
         return timestamp
 
+    def _hydrate_metadata(self, task):
+        metadata = task.metadata
+        metadata.setdefault("priority", Priority.NORMAL)
+        metadata.setdefault("group_earliest_timestamp", MAX_TIMESTAMP)
 
-    def _deduplicate_tasks(self, tasks: list[TaskSubmission]) -> list[TaskSubmission]:
+    def _dedup_and_append(self, task):
         deduplicated_tasks = []
         for task in tasks:
             if task not in deduplicated_tasks:
@@ -102,9 +106,7 @@ class Queue:
         tasks = [*self._collect_dependencies(item), item]
 
         for task in tasks:
-            metadata = task.metadata
-            metadata.setdefault("priority", Priority.NORMAL)
-            metadata.setdefault("group_earliest_timestamp", MAX_TIMESTAMP)
+            self._hydrate_metadata(task)
             self._queue.append(task)
         return self.size
 
@@ -250,4 +252,5 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
