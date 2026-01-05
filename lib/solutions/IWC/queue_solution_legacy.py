@@ -90,6 +90,14 @@ class Queue:
             return datetime.fromisoformat(timestamp).replace(tzinfo=None)
         return timestamp
 
+
+    def _deduplicate_tasks(self, tasks: list[TaskSubmission]) -> list[TaskSubmission]:
+        deduplicated_tasks = []
+        for task in tasks:
+            if task not in deduplicated_tasks:
+                deduplicated_tasks.append(task)
+        return deduplicated_tasks
+
     def enqueue(self, item: TaskSubmission) -> int:
         tasks = [*self._collect_dependencies(item), item]
 
@@ -242,3 +250,4 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
