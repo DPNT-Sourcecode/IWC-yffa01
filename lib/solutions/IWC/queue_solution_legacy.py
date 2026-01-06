@@ -150,7 +150,11 @@ class Queue:
 
             # Bumping up the too old bank statements task to the front of the queue
             current_index = i
-            while current_index > 0 and task_timestamp <= self._timestamp_for_task(self._queue[current_index - 1]):
+            while current_index > 0:
+                previous_task = self._queue[current_index - 1]
+                previous_task_timestamp = self._timestamp_for_task(previous_task)
+                
+                 and task_timestamp <= self._timestamp_for_task(self._queue[current_index - 1]):
                 self._queue[current_index], self._queue[current_index - 1] = self._queue[current_index - 1], self._queue[current_index]
                 current_index -= 1
 
@@ -310,6 +314,7 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
 
