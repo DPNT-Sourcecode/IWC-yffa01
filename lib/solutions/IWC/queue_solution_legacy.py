@@ -145,7 +145,12 @@ class Queue:
             task_timestamp = self._timestamp_for_task(task)
             newest_timestamp_until_now = max(newest_timestamp_until_now, task_timestamp)
 
-            if task.provider != "bank_statements" or newest_timestamp
+            if task.provider != "bank_statements" or (newest_timestamp_until_now - task_timestamp).total_seconds() < 300:
+                continue
+
+            # Bumping up the too old bank statements task to the front of the queue
+            current_index = i
+            while current_index > 0 and task_timestamp <= self._timestamp_for_task()
 
     def dequeue(self):
         if self.size == 0:
@@ -301,5 +306,6 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
