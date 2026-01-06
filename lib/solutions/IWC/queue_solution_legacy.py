@@ -137,6 +137,16 @@ class Queue:
     #     newest = max([self._timestamp_for_task(task) for task in self._queue])
     #     return (int)((newest - timestamp).total_seconds())
 
+    def _apply_age_based_priority(self):
+        newest_timestamp_until_now = datetime.min
+
+        for i in range(len(self._queue)):
+            task = self._queue[i]
+            task_timestamp = self._timestamp_for_task(task)
+            newest_timestamp_until_now = max(newest_timestamp_until_now, task_timestamp)
+
+            if task.provider != "bank_statements" or newest_timestamp
+
     def dequeue(self):
         if self.size == 0:
             return None
@@ -291,4 +301,5 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
