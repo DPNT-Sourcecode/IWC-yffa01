@@ -154,7 +154,7 @@ class Queue:
             while current_index > 0:
                 previous_task = self._queue[current_index - 1]
                 previous_task_timestamp = self._timestamp_for_task(previous_task)
-                if task_timestamp > previous_task_timestamp or (task_timestamp == previous_task_timestamp and previous_task.provider == "bank_statements" and ):
+                if task_timestamp > previous_task_timestamp or (task_timestamp == previous_task_timestamp and previous_task.provider == "bank_statements" and self._insertion_index_for_task(task) > self._insertion_index_for_task(previous_task)):
                     break
                 self._queue[current_index], self._queue[current_index - 1] = self._queue[current_index - 1], self._queue[current_index]
                 current_index -= 1
@@ -312,5 +312,6 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
