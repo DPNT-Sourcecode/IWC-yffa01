@@ -59,5 +59,3 @@ def test_enqueue_bank_statements_dequeue_flow_with_age_3() -> None:
         call_dequeue().expect("companies_house", 3),
         call_dequeue().expect("id_verification", 3),
     ])
-
-
