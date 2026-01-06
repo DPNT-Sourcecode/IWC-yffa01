@@ -112,6 +112,7 @@ class Queue:
         else:
             metadata.setdefault("task_priority", TaskPriority.NORMAL)
         metadata.setdefault("group_earliest_timestamp", MAX_TIMESTAMP)
+        metadata.setdefault("insertion")
 
     def _deduplicate_and_append(self, task):
         for i, existing_task in enumerate(self._queue):
@@ -306,3 +307,4 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
