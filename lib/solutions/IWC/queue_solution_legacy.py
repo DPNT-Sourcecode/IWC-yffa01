@@ -150,7 +150,9 @@ class Queue:
 
             # Bumping up the too old bank statements task to the front of the queue
             current_index = i
-            while current_index > 0 and task_timestamp <= self._timestamp_for_task()
+            while current_index > 0 and task_timestamp <= self._timestamp_for_task(self._queue[current_index - 1]):
+                self._queue[current_index], self._queue[current_index - 1] = self._queue[current_index - 1], self._queue[current_index]
+                current_index -= 1
 
     def dequeue(self):
         if self.size == 0:
@@ -197,6 +199,8 @@ class Queue:
                 self._timestamp_for_task(i),
             )
         )
+
+        self._apply_age_based_priority()
 
         task = self._queue.pop(0)
         return TaskDispatch(
@@ -306,6 +310,7 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
 
 
 
