@@ -132,10 +132,10 @@ class Queue:
             self._upsert_task(task)
         return self.size
 
-    def _get_age_for_task(self, given_task):
-        timestamp = self._timestamp_for_task(given_task)
-        newest = max([self._timestamp_for_task(task) for task in self._queue])
-        return (int)((newest - timestamp).total_seconds())
+    # def _get_age_for_task(self, given_task):
+    #     timestamp = self._timestamp_for_task(given_task)
+    #     newest = max([self._timestamp_for_task(task) for task in self._queue])
+    #     return (int)((newest - timestamp).total_seconds())
 
     def dequeue(self):
         if self.size == 0:
@@ -171,8 +171,8 @@ class Queue:
                 metadata["group_earliest_timestamp"] = current_earliest
                 metadata["user_priority"] = user_priority_level
 
-            if task.provider == "bank_statements" and self._get_age_for_task(task) >= 300:
-                metadata["task_priority"] = TaskPriority.NORMAL
+            # if task.provider == "bank_statements" and self._get_age_for_task(task) >= 300:
+            #     metadata["task_priority"] = TaskPriority.NORMAL
 
         self._queue.sort(
             key=lambda i: (
@@ -291,3 +291,4 @@ async def queue_worker():
         logger.info(f"Finished task: {task}")
 ```
 """
+
